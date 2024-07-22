@@ -162,8 +162,8 @@ def request_http(filename):
                 "encryptionFormat": "aes256",
                 "serviceAccountImpersonate": f"{GCF_GCS_ENCRIPTION}",
                 "smEncryptionKey": f"projects/{PROJECT_ID_BODYCAM_REPO}/secrets/data-int-bodycam-secretkey-01/versions/latest",
-                "gsBucketPathOrigin": f"gs://{PROJECT_ID_BODYCAM_TRAN}/vanti-bodycam-sto-tran-dev-tmp-upload-vid-dev/{filename}",
-                "gsBucketPathDestiny": f"gs://{PROJECT_ID_BODYCAM_REPO}/vanti-bodycam-sto-repo-dev-def-audit-vid-dev/{filename}.enc"
+                "gsBucketPathOrigin": f"gs://vanti-bodycam-sto-tran-dev-tmp-upload-vid-dev/{filename}",
+                "gsBucketPathDestiny": f"gs://vanti-bodycam-sto-repo-dev-def-audit-vid-dev/{filename}.enc"
                 }  
     headers = {'Authorization': f'Bearer {token}',
                'Content-Type': 'application/json'
