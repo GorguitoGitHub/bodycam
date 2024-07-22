@@ -96,6 +96,10 @@ def access_secret_version(secret_id, tcredentials):
 
 def gcs_get_object_details(bucket_name, gcs_file_path, credentials):
     service = build('storage', 'v1', credentials=credentials)
+    print(gcs_file_path)
+    print('-------------')
+    print(bucket_name)
+    print('-------------')
     parameters = {
         'object': gcs_file_path,
         'bucket': bucket_name,
