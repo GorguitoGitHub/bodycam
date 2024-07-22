@@ -96,10 +96,6 @@ def access_secret_version(secret_id, tcredentials):
 
 def gcs_get_object_details(bucket_name, gcs_file_path, credentials):
     service = build('storage', 'v1', credentials=credentials)
-    print(gcs_file_path)
-    print('-------------')
-    print(bucket_name)
-    print('-------------')
     parameters = {
         'object': gcs_file_path,
         'bucket': bucket_name,
@@ -111,7 +107,7 @@ def gcs_get_object_details(bucket_name, gcs_file_path, credentials):
 
 
 def gcs_download_file(gcs_file_name, project_id, credentials=None):
-    local_file_name = gcs_file_name.split("/")[-1]
+    local_file_name = gcs_file_name.split('/')[-1]
     bucket_name = gcs_file_name.split('/')[-2]
     gcs_file_path = re.sub(f'gs://{bucket_name}/', '', gcs_file_name)
 
@@ -213,7 +209,6 @@ def remove_local_files(local_files):
 
 @functions_framework.http
 def trigger_http_gcf(request):
-
     print(f"TRIGGER_INIT_EVENT:: --- {request} ---")
     post = getPost(request) 
     print(f"TRIGGER_INIT_POST:: --- {post} ---")
@@ -288,8 +283,6 @@ def trigger_http_gcf(request):
 
     print(f'INFO_FINISH::{returne}')
     return returne
-
-    return 'ok'
 
 
 # Only for local run

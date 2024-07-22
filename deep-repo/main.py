@@ -17,13 +17,15 @@ from googleapiclient.discovery import build
 
 print('---PRENDE---')
 
-LOCAL_ENV               = 'dev'
-PROJECT_ID_BODYCAM_REPO = os.getenv('PROJECT_ID_BODYCAM_REPO', f'vanti-bodycam-sto-repo-{LOCAL_ENV}')
-PROJECT_ID_BODYCAM_TRAN = os.getenv('PROJECT_ID_BODYCAM_TRAN', f'vanti-bodycam-sto-tran-{LOCAL_ENV}')
-LOCATION                = os.getenv('LOCATION', 'us')
-BUCKET_DESTINATION      = os.getenv('BUCKET_DESTINATION', 'vanti-bodycam-sto-repo-dev-def-audit-vid-dev')
-URL_GCF_GCS_ENCRIPTION  = os.getenv('URL_gcf-gcs-encription', 'https://us-central1-vanti-bodycam-sto-repo-dev.cloudfunctions.net/gcf-gcs-encription')
-GCF_GCS_ENCRIPTION      = os.getenv('GCF_GCS_ENCRIPTION', 'sa-gcf-gcs-bq-services@vanti-bodycam-sto-repo-dev.iam.gserviceaccount.com')
+LOCAL_ENV                = 'dev'
+PROJECT_ID_BODYCAM_REPO  = os.getenv('PROJECT_ID_BODYCAM_REPO', f'vanti-bodycam-sto-repo-{LOCAL_ENV}')
+#PROJECT_ID_BODYCAM_TRAN = os.getenv('PROJECT_ID_BODYCAM_TRAN', f'vanti-bodycam-sto-tran-{LOCAL_ENV}')
+#LOCATION                = os.getenv('LOCATION', 'us')
+BUCKET_ORIGIN_TRAN       = os.getenv('BUCKET_ORIGIN_TRAN', 'vanti-bodycam-sto-tran-dev-tmp-upload-vid-dev')
+BUCKET_DESTINATION_REPO  = os.getenv('BUCKET_DESTINATION_REPO', 'vanti-bodycam-sto-repo-dev-def-audit-vid-dev')
+SA_GCF_GCS_ENCRIPTION    = os.getenv('GCF_GCS_ENCRIPTION', 'sa-gcf-gcs-bq-services@vanti-bodycam-sto-repo-dev.iam.gserviceaccount.com')
+URL_GCF_GCS_ENCRIPTION   = os.getenv('URL_GCF_GCS_ENCRIPTION', 'https://us-central1-vanti-bodycam-sto-repo-dev.cloudfunctions.net/gcf-gcs-encription')
+
 
 
 def is_mp4(file_name):
@@ -83,7 +85,6 @@ def gcs_get_object_details(bucket_name, gcs_file_path):
     }
     objects_list = service.objects().get(**parameters)
     obj_details = objects_list.execute()
-    #print('Response object:', obj_details)
     return obj_details
 
 
@@ -113,12 +114,9 @@ def list_object_bucket(bucket_to_list):
             }
             response = service.objects().list(**parameters)
             response = response.execute()
-            #print('Response bucket:', response)
 
             for object in response['items']:
-                #print(object['md5Hash'])
                 list_md5_hash_objects_bucket_repo.append(object['md5Hash'])
-                #list_md5_hash_objects_bucket_repo.append(object.get('md5Hash'))
 
             if response.get('nextPageToken'):
                 flag = True
@@ -139,7 +137,7 @@ def compare_list(md5h_hash_file_in, list_bucket_out):
             else:
                 return False
     except Exception as e:
-        print('ERROR INTO LIST OBJECTS', e)
+        print('ERROR LISTING OBJECTS BUCKET', e)
     
 
 def get_access_token():
@@ -155,15 +153,15 @@ def get_access_token():
         print(f'WARNING_TK:: {e} -- ')
 
 
-def request_http(filename):
+def request_http(filename, path_destination):
     token = get_access_token()
     payload = {
                 "action": "encrypt",
                 "encryptionFormat": "aes256",
-                "serviceAccountImpersonate": f"{GCF_GCS_ENCRIPTION}",
+                "serviceAccountImpersonate": f"{SA_GCF_GCS_ENCRIPTION}",
                 "smEncryptionKey": f"projects/{PROJECT_ID_BODYCAM_REPO}/secrets/data-int-bodycam-secretkey-01/versions/latest",
-                "gsBucketPathOrigin": f"gs://vanti-bodycam-sto-tran-dev-tmp-upload-vid-dev/{filename}",
-                "gsBucketPathDestiny": f"gs://vanti-bodycam-sto-repo-dev-def-audit-vid-dev/{filename}.enc"
+                "gsBucketPathOrigin": f"gs://{BUCKET_ORIGIN_TRAN}/{filename}",
+                "gsBucketPathDestiny": path_destination
                 }  
     headers = {'Authorization': f'Bearer {token}',
                'Content-Type': 'application/json'
@@ -172,18 +170,20 @@ def request_http(filename):
     if post_response.status_code != 200:
         error = f'ERROR_HTTP_REQUEST:: code: {post_response.status_code}, reaseon: {post_response.reason}, headers:{str(post_response.headers)}'
         print(error)
-        #raise error
+        raise error
     #return post_response.json()
 
 
 @functions_framework.cloud_event
 def trigger_bucket_gcf(cloudevent):
+
     print(f"TRIGGER_INIT_EVENT:: --- {cloudevent} ---")
+
     colombia_time_zone = pytz.timezone('America/Bogota')
     date_time = datetime.now(colombia_time_zone)
     actual_date = str(date_time.date()).replace('-','.')
     name_folder = actual_date[:-3]
-    #path_destination = 'dataqualityscans/' + f'{name_folder}/' + name_scan + '_' + actual_date + '.json'
+    path_destination = f'gs://{BUCKET_DESTINATION_REPO}/bodycamVideos/{name_folder}/{filename}_' + actual_date + '.enc'
     attributes, data = get_data_attributes(cloudevent) 
 
     print(f'--INIT-- :: hello')
@@ -195,18 +195,15 @@ def trigger_bucket_gcf(cloudevent):
         gcs_file_path = re.sub(f'gs://{bucket_name_in}/', '', filename)
         details_object_in = gcs_get_object_details(bucket_name_in, gcs_file_path)        
         md5h_hash_file_in = details_object_in.get('md5Hash')
-        #md5h_hash_file_in = details_object_in.get('md5Hash')
-        #print(md5h_hash_file_in)
-        #print(type(details_object_in))
-        list_bucket_out = list_object_bucket(BUCKET_DESTINATION)
+        list_bucket_out = list_object_bucket(BUCKET_DESTINATION_REPO)
         comparative = compare_list(md5h_hash_file_in, list_bucket_out)
         print(comparative)
         if comparative:
             print('WARNING THE FILE ALREADY EXISTS !')
         else:
-            request_http(filename)
+            request_http(filename, path_destination)
     else:
-        print('THE FILE IS NOT mp4 FORMAT !')
+        print('THE FILE IS NOT .mp4 FORMAT !')
 
     return 'ok'
 
@@ -225,12 +222,6 @@ if __name__ == "__main__":
             return iter(self.data)
     
     with open('/Asignaciones/Proyecto_bodycam_25_abril_2024/ba-bodycam-services/src/test_logs/request_cloudEvent.json') as f:
-        data = f.read()
-    with open('/Asignaciones/Proyecto_bodycam_25_abril_2024/ba-bodycam-services/src/test_logs/request_detail_object.json') as f:
-        details_object_in = f.read()
-        details_object_in = json.loads(details_object_in)
-    with open('/Asignaciones/Proyecto_bodycam_25_abril_2024/ba-bodycam-services/src/test_logs/request_list_objects_bucket.json') as f:
-        delist_bucket_out = f.read()
-        delist_bucket_out = json.loads(delist_bucket_out)
+        data = f.read().replace('-prd', f'-{LOCAL_ENV}')
     cloudevent = CloudEvent(json.loads(data))
     trigger_bucket_gcf(cloudevent)
