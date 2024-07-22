@@ -183,13 +183,16 @@ def trigger_bucket_gcf(cloudevent):
     date_time = datetime.now(colombia_time_zone)
     actual_date = str(date_time.date()).replace('-','.')
     name_folder = actual_date[:-3]
-    path_destination = f'gs://{BUCKET_DESTINATION_REPO}/bodycamVideos/{name_folder}/{filename}_' + actual_date + '.enc'
+
     attributes, data = get_data_attributes(cloudevent) 
+    filename = attributes['objectId']
+    bucket_name_in = attributes['bucketId']
+
+    path_destination = f'gs://{BUCKET_DESTINATION_REPO}/bodycamVideos/{name_folder}/{filename}_' + actual_date + '.enc'
 
     print(f'--INIT-- :: hello')
 
-    filename = attributes['objectId']
-    bucket_name_in = attributes['bucketId']
+
 
     if is_mp4(filename):
         gcs_file_path = re.sub(f'gs://{bucket_name_in}/', '', filename)
