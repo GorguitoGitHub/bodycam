@@ -105,6 +105,7 @@ def gcs_get_object_details(bucket_name, gcs_file_path, credentials):
     return obj_details
 
 
+
 def gcs_download_file(gcs_file_name, project_id, credentials=None):
     local_file_name = gcs_file_name.split("/")[-1]
     bucket_name = gcs_file_name.split('/')[-2]
@@ -214,8 +215,8 @@ def trigger_http_gcf(request):
     print(f"TRIGGER_INIT_POST:: --- {post} ---")
     try:
         action = post['action']
-        gs_bucket_path_origin = post['gcsOriginFile']
-        gs_bucket_path_destiny = post['gcsDestinyFile']
+        gs_bucket_path_origin = post['gsBucketPathOrigin']
+        gs_bucket_path_destiny = post['gsBucketPathDestiny']
         service_account_impersonate = post['serviceAccountImpersonate']
         encryption_format = post['encryptionFormat'].lower() if 'encryptionFormat' in post and post['encryptionFormat'].lower() in ENCRIPTIONS  else None 
         sm_encryption_key = post['smEncryptionKey'] if 'smEncryptionKey' in post else None
@@ -235,6 +236,7 @@ def trigger_http_gcf(request):
     
     # Download form GCS
     obj_details, downloaded_file = gcs_download_file(gs_bucket_path_origin, PROJECT_ID_BODYCAM_TRAN, tcredentials)
+    print(obj_details)
 
     # Get metadata local file
     metadata = get_metadsata_file(downloaded_file)

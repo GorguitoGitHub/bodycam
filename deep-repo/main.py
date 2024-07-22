@@ -12,7 +12,6 @@ from google.auth import default
 import google.auth
 import google.auth.transport.requests
 #from google.oauth2.credentials import Credentials
-
 from googleapiclient.discovery import build
 
 
