@@ -107,7 +107,7 @@ def gcs_get_object_details(bucket_name, gcs_file_path, credentials):
 
 def gcs_download_file(gcs_file_name, project_id, credentials=None):
     local_file_name = gcs_file_name.split("/")[-1]
-    bucket_name = gcs_file_name.split('/')[2]
+    bucket_name = gcs_file_name.split('/')[-2]
     gcs_file_path = re.sub(f'gs://{bucket_name}/', '', gcs_file_name)
 
     obj_details = gcs_get_object_details(bucket_name, gcs_file_path, credentials)
