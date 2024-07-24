@@ -44,7 +44,7 @@ def bash_cmd_print(command):
 
 def del_unidoe_charts(text):
     text_mod = ''.join((c for c in unicodedata.normalize('NFD', text.replace(' ', '_')) if unicodedata.category(c) != 'Mn'))
-    text_mod = re.sub(r'[^a-zA-Z0-9._]|^[^a-zA-Z._]+', '', text_mod).lower()
+    text_mod = re.sub(r'[^a-zA-Z0-9._/]|^[^a-zA-Z._]+', '', text_mod).lower()
     return text_mod
     
 
