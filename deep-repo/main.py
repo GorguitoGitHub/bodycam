@@ -6,6 +6,7 @@ import base64
 import hashlib
 import requests
 import subprocess
+import unicodedata
 import functions_framework
 from datetime import datetime
 from google.auth import default
@@ -39,6 +40,12 @@ def bash_cmd_print(command):
     bash_ls = str(subprocess.check_output(command).decode("utf-8"))
     print(f'{bash_ls}')
     return bash_ls
+
+
+def del_unidoe_charts(text):
+    text_mod = ''.join((c for c in unicodedata.normalize('NFD', text.replace(' ', '_')) if unicodedata.category(c) != 'Mn'))
+    text_mod = re.sub(r'[^a-zA-Z0-9._]|^[^a-zA-Z._]+', '', text_mod).lower()
+    return text_mod
     
 
 def get_data_attributes(cloud_event):
@@ -87,8 +94,8 @@ def gcs_get_object_details(bucket_name, gcs_file_path):
     obj_details = objects_list.execute()
     return obj_details
 
-
-def list_object_bucket(bucket_to_list):
+'''
+def list_object_bucket(bucket_to_list, maxResults):
     list_md5_hash_objects_bucket_repo = []
     next_page_token = ''
     flag = True
@@ -103,7 +110,7 @@ def list_object_bucket(bucket_to_list):
                 'includeFoldersAsPrefixes' : False,
                 'includeTrailingDelimiter' : False,
                 #'matchGlob' : '',
-                'maxResults' : 2,
+                'maxResults' : maxResults,
                 'pageToken' : next_page_token,
                 #'prefix' : '',
                 'projection' : 'full',
@@ -127,12 +134,12 @@ def list_object_bucket(bucket_to_list):
     
     except Exception as e:
         print('EXECUTE ERROR OBTAIN OBJECTS LIST', e)
+'''
 
-
-def compare_list(md5h_hash_file_in, list_bucket_out):
+def compare_object(md5h_hash_file_in, details_object_in):
     try:
-        if iter(list_bucket_out):
-            if md5h_hash_file_in in list_bucket_out:
+        if iter(details_object_in):
+            if md5h_hash_file_in in details_object_in:
                 return True
             else:
                 return False
@@ -182,24 +189,27 @@ def trigger_bucket_gcf(cloudevent):
     colombia_time_zone = pytz.timezone('America/Bogota')
     date_time = datetime.now(colombia_time_zone)
     actual_date = str(date_time.date()).replace('-','.')
-    name_folder = actual_date[:-3]
+    name_folder_year_month = actual_date[:-3]
+    
 
     attributes, data = get_data_attributes(cloudevent) 
     filename = attributes['objectId']
     bucket_name_in = attributes['bucketId']
 
-    path_destination = f'gs://{BUCKET_DESTINATION_REPO}/bodycamVideos/{name_folder}/{filename}_' + actual_date + '.enc'
+    filename_decode = del_unidoe_charts(filename)
+
+    path_destination = f'gs://{BUCKET_DESTINATION_REPO}/{filename_decode}_' + '.enc'
 
     print(f'--INIT-- :: hello')
 
 
 
-    if is_mp4(filename):
-        gcs_file_path = re.sub(f'gs://{bucket_name_in}/', '', filename)
-        details_object_in = gcs_get_object_details(bucket_name_in, gcs_file_path)        
-        md5h_hash_file_in = details_object_in.get('md5Hash')
-        list_bucket_out = list_object_bucket(BUCKET_DESTINATION_REPO)
-        comparative = compare_list(md5h_hash_file_in, list_bucket_out)
+    if is_mp4(filename_decode):        
+        gcs_file_path = re.sub(f'gs://{bucket_name_in}/', '', filename_decode)
+        md5h_hash_file_in = data.get('md5Hash')
+        details_object_in = gcs_get_object_details(BUCKET_DESTINATION_REPO, gcs_file_path)                
+        #list_bucket_out = list_object_bucket(BUCKET_DESTINATION_REPO, 2)
+        comparative = compare_object(md5h_hash_file_in, details_object_in)
         print(comparative)
         if comparative:
             print('WARNING THE FILE ALREADY EXISTS !')
