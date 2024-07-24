@@ -90,9 +90,15 @@ def gcs_get_object_details(bucket_name, gcs_file_path):
         'object': gcs_file_path,
         'bucket': bucket_name,
     }
-    objects_list = service.objects().get(**parameters)
-    obj_details = objects_list.execute()
-    return obj_details
+    try:
+        objects_list = service.objects().get(**parameters)
+        obj_details = objects_list.execute()
+        return obj_details
+    except Exception as e:
+        print(f'ERROR GET OBJECT BUCKET !')
+        return False
+
+    
 
 '''
 def list_object_bucket(bucket_to_list, maxResults):
@@ -138,13 +144,17 @@ def list_object_bucket(bucket_to_list, maxResults):
 
 def compare_object(md5h_hash_file_in, details_object_in):
     try:
-        if iter(details_object_in):
+        if details_object_in :
             if md5h_hash_file_in in details_object_in:
+                print('WARNING THE FILE ALREADY EXISTS !')
                 return True
             else:
                 return False
+        else:
+            return False
     except Exception as e:
         print('ERROR LISTING OBJECTS BUCKET', e)
+        return False
     
 
 def get_access_token():
@@ -205,11 +215,11 @@ def trigger_bucket_gcf(cloudevent):
 
 
     if is_mp4(filename_decode):        
-        gcs_file_path = re.sub(f'gs://{bucket_name_in}/', '', filename_decode)
+        gcs_file_path = re.sub(f'gs://{BUCKET_DESTINATION_REPO}/', '', filename_decode)
         md5h_hash_file_in = data.get('md5Hash')
-        details_object_in = gcs_get_object_details(BUCKET_DESTINATION_REPO, gcs_file_path)                
+        details_object_bucket_destination = gcs_get_object_details(BUCKET_DESTINATION_REPO, gcs_file_path)                
         #list_bucket_out = list_object_bucket(BUCKET_DESTINATION_REPO, 2)
-        comparative = compare_object(md5h_hash_file_in, details_object_in)
+        comparative = compare_object(md5h_hash_file_in, details_object_bucket_destination)
         print(comparative)
         if comparative:
             print('WARNING THE FILE ALREADY EXISTS !')
