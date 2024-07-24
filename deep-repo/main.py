@@ -146,15 +146,13 @@ def compare_object(md5h_hash_file_in, details_object_in):
     try:
         if details_object_in :
             if md5h_hash_file_in in details_object_in:
-                print('WARNING THE FILE ALREADY EXISTS !')
                 return True
             else:
                 return False
         else:
             return False
     except Exception as e:
-        print('ERROR LISTING OBJECTS BUCKET', e)
-        return False
+        print('ERROR COMPARING MD5HASH', e)
     
 
 def get_access_token():
@@ -204,14 +202,13 @@ def trigger_bucket_gcf(cloudevent):
 
     attributes, data = get_data_attributes(cloudevent) 
     filename = attributes['objectId']
-    bucket_name_in = attributes['bucketId']
+    #bucket_name_in = attributes['bucketId']
 
     filename_decode = del_unidoe_charts(filename)
 
     path_destination = f'gs://{BUCKET_DESTINATION_REPO}/{filename_decode}_' + '.enc'
 
     print(f'--INIT-- :: hello')
-
 
 
     if is_mp4(filename_decode):        
