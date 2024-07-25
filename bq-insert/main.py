@@ -10,10 +10,10 @@ import functions_framework
 
 
 LOCAL_ENV               = 'dev'
-PROJECT_ID_BODYCAM_REPO = os.getenv('PROJECT_ID_BODYCAM_REPO', f'vanti-bodycam-sto-repo-{LOCAL_ENV}')
+#PROJECT_ID_BODYCAM_REPO = os.getenv('PROJECT_ID_BODYCAM_REPO', f'vanti-bodycam-sto-repo-{LOCAL_ENV}')
 #BUCKET_REPO  = os.getenv('BUCKET_DESTINATION_REPO', f'vanti-bodycam-sto-repo-{LOCAL_ENV}-def-audit-vid-{LOCAL_ENV}')
-PROJECT_ID_DATALAKE     = os.getenv('PROJECT_ID_DATALAKE', f'vanti-data-sto-{LOCAL_ENV}')
-LOCATION                = os.getenv('LOCATION', 'us')
+#PROJECT_ID_DATALAKE     = os.getenv('PROJECT_ID_DATALAKE', f'vanti-data-sto-{LOCAL_ENV}')
+#LOCATION                = os.getenv('LOCATION', 'us')
 PATH_TABLE_BIGQUERY     = os.getenv('PATH_TABLE_BIGQUERY',f'vanti-data-sto-{LOCAL_ENV}.del_bodycam.videos_history')
 
 
@@ -45,7 +45,7 @@ def get_data_attributes(cloud_event):
 
 def convert_timestamp_utc_to_localtimestamp(timestamp_utc, localzone = 'America/Bogota'):
     colombia_time_zone = pytz.timezone(localzone)
-    time_utc_datetime_format = datetime.datetime.fromisoformat(timestamp_utc)
+    time_utc_datetime_format = datetime.fromisoformat(timestamp_utc)
     local_time = time_utc_datetime_format.astimezone(colombia_time_zone)
     return local_time
 
