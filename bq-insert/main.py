@@ -2,6 +2,7 @@ import os
 import json
 import pytz
 import base64
+import pyarrow
 import pandas as pd
 from google.cloud import bigquery
 from datetime import datetime, timedelta
