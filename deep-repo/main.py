@@ -22,10 +22,10 @@ LOCAL_ENV                = 'dev'
 PROJECT_ID_BODYCAM_REPO  = os.getenv('PROJECT_ID_BODYCAM_REPO', f'vanti-bodycam-sto-repo-{LOCAL_ENV}')
 #PROJECT_ID_BODYCAM_TRAN = os.getenv('PROJECT_ID_BODYCAM_TRAN', f'vanti-bodycam-sto-tran-{LOCAL_ENV}')
 #LOCATION                = os.getenv('LOCATION', 'us')
-BUCKET_ORIGIN_TRAN       = os.getenv('BUCKET_ORIGIN_TRAN', 'vanti-bodycam-sto-tran-dev-tmp-upload-vid-dev')
-BUCKET_DESTINATION_REPO  = os.getenv('BUCKET_DESTINATION_REPO', 'vanti-bodycam-sto-repo-dev-def-audit-vid-dev')
-SA_GCF_GCS_ENCRIPTION    = os.getenv('GCF_GCS_ENCRIPTION', 'sa-gcf-gcs-bq-services@vanti-bodycam-sto-repo-dev.iam.gserviceaccount.com')
-URL_GCF_GCS_ENCRIPTION   = os.getenv('URL_GCF_GCS_ENCRIPTION', 'https://us-central1-vanti-bodycam-sto-repo-dev.cloudfunctions.net/gcf-gcs-encription')
+BUCKET_ORIGIN_TRAN       = os.getenv('BUCKET_ORIGIN_TRAN', 'vanti-bodycam-sto-tran-{LOCAL_ENV}-tmp-upload-vid-{LOCAL_ENV}')
+BUCKET_DESTINATION_REPO  = os.getenv('BUCKET_DESTINATION_REPO', 'vanti-bodycam-sto-repo-{LOCAL_ENV}-def-audit-vid-{LOCAL_ENV}')
+SA_GCF_GCS_ENCRIPTION    = os.getenv('GCF_GCS_ENCRIPTION', 'sa-gcf-gcs-bq-services@vanti-bodycam-sto-repo-{LOCAL_ENV}.iam.gserviceaccount.com')
+URL_GCF_GCS_ENCRIPTION   = os.getenv('URL_GCF_GCS_ENCRIPTION', 'https://us-central1-vanti-bodycam-sto-repo-{LOCAL_ENV}.cloudfunctions.net/gcf-gcs-encription')
 
 
 
@@ -66,8 +66,7 @@ def get_data_attributes(cloud_event):
         else: 
             data = cloud_event.data
     except Exception as e:
-        print(f'WARNNING_GET_DATA_PUBSUB: {e}')
-    
+        print(f'WARNNING_GET_DATA_PUBSUB: {e}')    
     return attributes, data
 
 
@@ -148,6 +147,7 @@ def compare_object(md5h_hash_file_in, details_object_in):
             if md5h_hash_file_in in details_object_in:
                 return True
             else:
+                'Sería otra versión'
                 return False
         else:
             return False
