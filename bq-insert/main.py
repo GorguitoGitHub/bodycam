@@ -52,9 +52,18 @@ def convert_timestamp_utc_to_localtimestamp(timestamp_utc, localzone = 'America/
 
 def upload_video_history_to_bq(table_id, project_id, video_name, uploaded_date, creation_date, supervisor_name, metadata, delete_prog, version_history):
     client_bigquery = bigquery.Client(project= project_id)
-    data = [video_name, uploaded_date, creation_date, supervisor_name, metadata, delete_prog, version_history]
-    columns_table = ['video_name', 'uploaded_date', 'creation_date', 'supervisor_name', 'metadata', 'delete_prog', 'version_history']
-    dataframe = pd.DataFrame(data, columns= columns_table)
+    new_row_data = {'video_name'        : video_name,
+                    'uploaded_date'     : uploaded_date,
+                    'creation_date'     : creation_date,
+                    'supervisor_name'   : supervisor_name,
+                    'metadata'          : metadata,
+                    'delete_prog'       : delete_prog,
+                    'version_history'   : version_history
+                    }
+    dataframe = pd.DataFrame(new_row_data, index=[0])
+    #data = [video_name, uploaded_date, creation_date, supervisor_name, metadata, delete_prog, version_history]
+    #columns_table = ['video_name', 'uploaded_date', 'creation_date', 'supervisor_name', 'metadata', 'delete_prog', 'version_history']
+    #dataframe = pd.DataFrame(data, columns= columns_table)
     job = client_bigquery.load_table_from_dataframe(dataframe, table_id)
     job.result()
 
