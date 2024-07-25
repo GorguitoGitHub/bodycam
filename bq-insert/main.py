@@ -81,7 +81,7 @@ def trigger_bucket_gcf(cloudevent):
     local_load_time = convert_timestamp_utc_to_localtimestamp(load_time)
     date_delete = local_load_time.date() + timedelta(days=30)
 
-    upload_video_history_to_bq(path_origin, local_load_time, 'creation_dATE', 'SUPERV_name', metadata, date_delete, 'version_1')
+    upload_video_history_to_bq(PATH_TABLE_BIGQUERY, path_origin, local_load_time, 'creation_dATE', 'SUPERV_name', metadata, date_delete, 'version_1')
 
     return 'ok'
 
