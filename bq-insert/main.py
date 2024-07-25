@@ -12,7 +12,7 @@ import functions_framework
 LOCAL_ENV               = 'dev'
 #PROJECT_ID_BODYCAM_REPO = os.getenv('PROJECT_ID_BODYCAM_REPO', f'vanti-bodycam-sto-repo-{LOCAL_ENV}')
 #BUCKET_REPO  = os.getenv('BUCKET_DESTINATION_REPO', f'vanti-bodycam-sto-repo-{LOCAL_ENV}-def-audit-vid-{LOCAL_ENV}')
-#PROJECT_ID_DATALAKE     = os.getenv('PROJECT_ID_DATALAKE', f'vanti-data-sto-{LOCAL_ENV}')
+PROJECT_ID_DATALAKE     = os.getenv('PROJECT_ID_DATALAKE', f'vanti-data-sto-{LOCAL_ENV}')
 #LOCATION                = os.getenv('LOCATION', 'us')
 PATH_TABLE_BIGQUERY     = os.getenv('PATH_TABLE_BIGQUERY',f'vanti-data-sto-{LOCAL_ENV}.del_bodycam.videos_history')
 
@@ -50,8 +50,8 @@ def convert_timestamp_utc_to_localtimestamp(timestamp_utc, localzone = 'America/
     return local_time
 
 
-def upload_video_history_to_bq(table_id, video_name, uploaded_date, creation_date, supervisor_name, metadata, delete_prog, version_history):
-    client_bigquery = bigquery.client()
+def upload_video_history_to_bq(table_id, project_id, video_name, uploaded_date, creation_date, supervisor_name, metadata, delete_prog, version_history):
+    client_bigquery = bigquery.Client(project= project_id)
     data = [video_name, uploaded_date, creation_date, supervisor_name, metadata, delete_prog, version_history]
     columns_table = ['video_name', 'uploaded_date', 'creation_date', 'supervisor_name', 'metadata', 'delete_prog', 'version_history']
     dataframe = pd.DataFrame(data, columns= columns_table)
@@ -81,7 +81,7 @@ def trigger_bucket_gcf(cloudevent):
     local_load_time = convert_timestamp_utc_to_localtimestamp(load_time)
     date_delete = local_load_time.date() + timedelta(days=30)
 
-    upload_video_history_to_bq(PATH_TABLE_BIGQUERY, path_origin, local_load_time, 'creation_dATE', 'SUPERV_name', metadata, date_delete, 'version_1')
+    upload_video_history_to_bq(PATH_TABLE_BIGQUERY, PROJECT_ID_DATALAKE, path_origin, local_load_time, 'creation_dATE', 'SUPERV_name', metadata, date_delete, 'version_1')
 
     return 'ok'
 
