@@ -75,7 +75,8 @@ def trigger_bucket_gcf(cloudevent):
     path_folder_file = attributes['objectId']
     bucket_name = attributes['bucketId']
     load_time = attributes['eventTime']
-    metadata = data['metadata']
+    metadata = json.loads(data['metadata'])
+
 
     
     print(f'--INIT-- :: hello')
