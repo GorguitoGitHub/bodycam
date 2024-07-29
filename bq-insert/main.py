@@ -14,6 +14,7 @@ LOCAL_ENV               = 'dev'
 PROJECT_ID_DATALAKE     = os.getenv('PROJECT_ID_DATALAKE', f'vanti-data-sto-{LOCAL_ENV}')
 LOCATION                = os.getenv('LOCATION', 'us')
 PATH_TABLE_BIGQUERY     = os.getenv('PATH_TABLE_BIGQUERY',f'vanti-data-sto-{LOCAL_ENV}.del_bodycam.videos_history')
+DATASET_BIGQUERY        = os.getenv('DATASET_BIGQUERY', 'del_bodycam')
 
 
 print('---PRENDE---')
@@ -49,24 +50,20 @@ def convert_timestamp_utc_to_localtimestamp(timestamp_utc, localzone = 'America/
     return local_time
 
 
-def upload_video_history_to_bq(table_id, project_id, video_name, uploaded_date, creation_date, supervisor_name, metadata, delete_prog, version_history):
-    client_bigquery = bigquery.Client(project= project_id)
-    rows_to_insert = [{'video_name'        : video_name,
-                    'uploaded_date'     : uploaded_date,
-                    'creation_date'     : creation_date,
-                    'supervisor_name'   : supervisor_name,
-                    'metadata'          : metadata,
-                    'delete_prog'       : delete_prog,
-                    'version_history'   : version_history
-                    }]
+def upload_video_history_to_bq(project_id, dataset_id, table_id, rows_to_insert):
+    client = bigquery.Client(project= project_id)
+    table_ref = client.dataset(dataset_id, project=project_id).table(table_id)
+    table = client.get_table(table_ref)  # Obtén la tabla
 
-    errors = client_bigquery.insert_rows_json(table_id, rows_to_insert)  # Make an API request.
+    row_to_insert = rows_to_insert
+    errors = client.insert_rows_json(table, row_to_insert)  # Make an API request.
     if errors == []:
+        table = client.get_table(table_id)
         print("New rows have been added.")
         print(f'Load {table.num_rows} rows {len(table.schema)} and colun to {table_id} ')
     else:
         print("Encountered errors while inserting rows: {}".format(errors))
-    table = client_bigquery.get_table(table_id)
+    
 
 
 @functions_framework.cloud_event
@@ -78,7 +75,7 @@ def trigger_bucket_gcf(cloudevent):
     bucket_name = attributes['bucketId']
     load_time = attributes['eventTime']
     metadata = data['metadata']
- 
+
     
     print(f'--INIT-- :: hello')
 
@@ -87,7 +84,16 @@ def trigger_bucket_gcf(cloudevent):
     local_load_time = convert_timestamp_utc_to_localtimestamp(load_time)
     date_delete = local_load_time.date() + timedelta(days=30)
 
-    upload_video_history_to_bq(PATH_TABLE_BIGQUERY, PROJECT_ID_DATALAKE, path_origin, local_load_time, 'creation_dATE', 'SUPERV_name', metadata, date_delete, 'version_1')
+    row_to_insert_bq = [{'video_name'      : path_origin,
+                        'uploaded_date'     : local_load_time,
+                        'creation_date'     : local_load_time,
+                        'supervisor_name'   : 'Supervisor_Name',
+                        'metadata'          : metadata,
+                        'delete_prog'       : date_delete,
+                        'version_history'   : 'version_1'
+                        }]
+
+    upload_video_history_to_bq(PROJECT_ID_DATALAKE, DATASET_BIGQUERY, PATH_TABLE_BIGQUERY, row_to_insert_bq)
 
     return 'ok'
 
