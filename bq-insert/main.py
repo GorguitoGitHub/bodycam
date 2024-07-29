@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import pytz
 import base64
@@ -60,20 +61,17 @@ def upload_video_history_to_bq(project_id, dataset_id, table_id, row_to_insert):
     if errors == []:
         table = client.get_table(f'{project_id}.{dataset_id}.{table_id}')
         print("New row have been added.")
-        print(f'Loaded {table.num_rows} rows and {len(table.schema)} column to {table_id} table')
+        print(f'Loaded 1 row and {len(table.schema)} columns to "{table_id}" table')
     else:
         print("Encountered errors while inserting rows: {}".format(errors))
 
-    
-def obtain_object_verison(bucket_name, object_name):
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name=bucket_name)
-    blob = bucket.list_blobs(prefix=object_name, versions=True)
-    print('Version blob:', blob[2])
-    print('--------')
-    print('blob en for')
-    for i in blob:
-        print(i)
+
+def timestamp_numeric_to_timestamp_bq(timestamp_numeric):
+    creation_date_strp = re.match(r'^\d+', timestamp_numeric)
+    creation_date_strf = datetime.strptime(creation_date_strp[0], '%Y%m%d%H%M%S')
+    creation_date = creation_date_strf.strftime('%Y-%m-%dT%H:%M:%S')
+    return creation_date
+
 
 @functions_framework.cloud_event
 def trigger_bucket_gcf(cloudevent):    
@@ -94,14 +92,15 @@ def trigger_bucket_gcf(cloudevent):
     path_origin = f'gs://{bucket_name}/{path_folder_file}'
     local_load_time = convert_timestamp_utc_to_localtimestamp(load_time)
     supervisor_name = path_folder_file.split('/')[0]
+    creation_date_tmstmp = path_folder_file.split('/')[-1]
+    creation_date = timestamp_numeric_to_timestamp_bq(creation_date_tmstmp)
     uploaded_date = local_load_time.strftime("%Y-%m-%d %H:%M:%S")#.now
     date_delete = (local_load_time.date() + timedelta(days=30)).strftime("%Y-%m-%d")
-    #obtain_object_verison(bucket_name, path_folder_file)
     
 
     row_to_insert_bq = [{'video_name'       : path_origin,
                         'uploaded_date'     : uploaded_date,
-                        'creation_date'     : uploaded_date,
+                        'creation_date'     : creation_date,
                         'supervisor_name'   : supervisor_name,
                         'metadata'          : metadata,
                         'delete_programation': date_delete,
