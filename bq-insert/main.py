@@ -94,6 +94,7 @@ def trigger_bucket_gcf(cloudevent):
     supervisor_name = path_folder_file.split('/')[0]
     #uploaded_date = local_load_time.now()
     date_delete = (local_load_time.date() + timedelta(days=30)).strftime("%Y-%m-%d")
+    obtain_object_verison(bucket_name, path_folder_file)
     
 
     row_to_insert_bq = [{'video_name'       : path_origin,
