@@ -86,11 +86,11 @@ def trigger_bucket_gcf(cloudevent):
     date_delete = local_load_time.date() + timedelta(days=30)
 
     row_to_insert_bq = [{'video_name'       : path_origin,
-                        'uploaded_date'     : local_load_time,
-                        'creation_date'     : local_load_time,
+                        'uploaded_date'     : local_load_time.isoformat(),
+                        'creation_date'     : local_load_time.isoformat(),
                         'supervisor_name'   : 'Supervisor_Name',
                         'metadata'          : metadata,
-                        'delete_prog'       : date_delete,
+                        'delete_prog'       : date_delete.isoformat(),
                         'version_history'   : 'version_1'
                         }]
 
