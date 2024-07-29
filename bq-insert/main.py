@@ -75,7 +75,9 @@ def trigger_bucket_gcf(cloudevent):
     path_folder_file = attributes['objectId']
     bucket_name = attributes['bucketId']
     load_time = attributes['eventTime']
-    metadata = json.loads(data['metadata'])
+    print(data['metadata'])
+    print(type(data['metadata']))
+    metadata = json.dumps(data['metadata'])
 
 
     
@@ -84,14 +86,18 @@ def trigger_bucket_gcf(cloudevent):
 
     path_origin = f'gs://{bucket_name}/{path_folder_file}'
     local_load_time = convert_timestamp_utc_to_localtimestamp(load_time)
-    date_delete = local_load_time.date() + timedelta(days=30)
+    print(local_load_time)
+    uploaded_date = local_load_time.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(uploaded_date)
+    date_delete = (local_load_time.date() + timedelta(days=30)).strftime("%Y-%m-%d %H:%M:%S")
+    print(date_delete)
 
     row_to_insert_bq = [{'video_name'       : path_origin,
-                        'uploaded_date'     : local_load_time.isoformat(),
-                        'creation_date'     : local_load_time.isoformat(),
+                        'uploaded_date'     : uploaded_date,
+                        'creation_date'     : uploaded_date,
                         'supervisor_name'   : 'Supervisor_Name',
                         'metadata'          : metadata,
-                        'delete_prog'       : date_delete.isoformat(),
+                        'delete_prog'       : date_delete,
                         'version_history'   : 'version_1'
                         }]
 
