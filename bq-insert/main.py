@@ -13,7 +13,8 @@ LOCAL_ENV               = 'dev'
 #BUCKET_REPO  = os.getenv('BUCKET_DESTINATION_REPO', f'vanti-bodycam-sto-repo-{LOCAL_ENV}-def-audit-vid-{LOCAL_ENV}')
 PROJECT_ID_DATALAKE     = os.getenv('PROJECT_ID_DATALAKE', f'vanti-data-sto-{LOCAL_ENV}')
 LOCATION                = os.getenv('LOCATION', 'us')
-PATH_TABLE_BIGQUERY     = os.getenv('PATH_TABLE_BIGQUERY',f'vanti-data-sto-{LOCAL_ENV}.del_bodycam.videos_history')
+PATH_TABLE_BIGQUERY     = os.getenv('PATH_TABLE_BIGQUERY','videos_history')
+#PATH_TABLE_BIGQUERY     = os.getenv('PATH_TABLE_BIGQUERY',f'vanti-data-sto-{LOCAL_ENV}.del_bodycam.videos_history')
 DATASET_BIGQUERY        = os.getenv('DATASET_BIGQUERY', 'del_bodycam')
 
 
