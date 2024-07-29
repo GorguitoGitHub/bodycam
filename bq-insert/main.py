@@ -2,8 +2,6 @@ import os
 import json
 import pytz
 import base64
-import pyarrow
-import pandas as pd
 from google.cloud import bigquery
 from datetime import datetime, timedelta
 
@@ -14,7 +12,7 @@ LOCAL_ENV               = 'dev'
 #PROJECT_ID_BODYCAM_REPO = os.getenv('PROJECT_ID_BODYCAM_REPO', f'vanti-bodycam-sto-repo-{LOCAL_ENV}')
 #BUCKET_REPO  = os.getenv('BUCKET_DESTINATION_REPO', f'vanti-bodycam-sto-repo-{LOCAL_ENV}-def-audit-vid-{LOCAL_ENV}')
 PROJECT_ID_DATALAKE     = os.getenv('PROJECT_ID_DATALAKE', f'vanti-data-sto-{LOCAL_ENV}')
-#LOCATION                = os.getenv('LOCATION', 'us')
+LOCATION                = os.getenv('LOCATION', 'us')
 PATH_TABLE_BIGQUERY     = os.getenv('PATH_TABLE_BIGQUERY',f'vanti-data-sto-{LOCAL_ENV}.del_bodycam.videos_history')
 
 
@@ -53,24 +51,22 @@ def convert_timestamp_utc_to_localtimestamp(timestamp_utc, localzone = 'America/
 
 def upload_video_history_to_bq(table_id, project_id, video_name, uploaded_date, creation_date, supervisor_name, metadata, delete_prog, version_history):
     client_bigquery = bigquery.Client(project= project_id)
-    new_row_data = {'video_name'        : video_name,
+    rows_to_insert = [{'video_name'        : video_name,
                     'uploaded_date'     : uploaded_date,
                     'creation_date'     : creation_date,
                     'supervisor_name'   : supervisor_name,
                     'metadata'          : metadata,
                     'delete_prog'       : delete_prog,
                     'version_history'   : version_history
-                    }
-    dataframe = pd.DataFrame(new_row_data, index=[0])
-    #data = [video_name, uploaded_date, creation_date, supervisor_name, metadata, delete_prog, version_history]
-    #columns_table = ['video_name', 'uploaded_date', 'creation_date', 'supervisor_name', 'metadata', 'delete_prog', 'version_history']
-    #dataframe = pd.DataFrame(data, columns= columns_table)
-    job = client_bigquery.load_table_from_dataframe(dataframe, table_id)
-    job.result()
+                    }]
 
+    errors = client_bigquery.insert_rows_json(table_id, rows_to_insert)  # Make an API request.
+    if errors == []:
+        print("New rows have been added.")
+        print(f'Load {table.num_rows} rows {len(table.schema)} and colun to {table_id} ')
+    else:
+        print("Encountered errors while inserting rows: {}".format(errors))
     table = client_bigquery.get_table(table_id)
-
-    print(f'Load {table.num_rows} rows {len(table.schema)} and colun to {table_id} ')
 
 
 @functions_framework.cloud_event
