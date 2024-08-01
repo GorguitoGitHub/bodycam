@@ -12,7 +12,6 @@ from datetime import datetime
 from google.auth import default
 import google.auth
 import google.auth.transport.requests
-#from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 
@@ -22,11 +21,10 @@ LOCAL_ENV                = 'dev'
 PROJECT_ID_BODYCAM_REPO  = os.getenv('PROJECT_ID_BODYCAM_REPO', f'vanti-bodycam-sto-repo-{LOCAL_ENV}')
 #PROJECT_ID_BODYCAM_TRAN = os.getenv('PROJECT_ID_BODYCAM_TRAN', f'vanti-bodycam-sto-tran-{LOCAL_ENV}')
 #LOCATION                = os.getenv('LOCATION', 'us')
-BUCKET_ORIGIN_TRAN       = os.getenv('BUCKET_ORIGIN_TRAN', 'vanti-bodycam-sto-tran-{LOCAL_ENV}-tmp-upload-vid-{LOCAL_ENV}')
-BUCKET_DESTINATION_REPO  = os.getenv('BUCKET_DESTINATION_REPO', 'vanti-bodycam-sto-repo-{LOCAL_ENV}-def-audit-vid-{LOCAL_ENV}')
-SA_GCF_GCS_ENCRIPTION    = os.getenv('GCF_GCS_ENCRIPTION', 'sa-gcf-gcs-bq-services@vanti-bodycam-sto-repo-{LOCAL_ENV}.iam.gserviceaccount.com')
-URL_GCF_GCS_ENCRIPTION   = os.getenv('URL_GCF_GCS_ENCRIPTION', 'https://us-central1-vanti-bodycam-sto-repo-{LOCAL_ENV}.cloudfunctions.net/gcf-gcs-encription')
-
+BUCKET_ORIGIN_TRAN       = os.getenv('BUCKET_ORIGIN_TRAN', f'vanti-bodycam-sto-tran-{LOCAL_ENV}-tmp-upload-vid-{LOCAL_ENV}')
+BUCKET_DESTINATION_REPO  = os.getenv('BUCKET_DESTINATION_REPO', f'vanti-bodycam-sto-repo-{LOCAL_ENV}-def-audit-vid-{LOCAL_ENV}')
+SA_GCF_GCS_ENCRIPTION    = os.getenv('GCF_GCS_ENCRIPTION', f'sa-gcf-gcs-bq-services@vanti-bodycam-sto-repo-{LOCAL_ENV}.iam.gserviceaccount.com')
+URL_GCF_GCS_ENCRIPTION   = os.getenv('URL_GCF_GCS_ENCRIPTION', f'https://us-central1-vanti-bodycam-sto-repo-{LOCAL_ENV}.cloudfunctions.net/gcf-gcs-encription')
 
 
 def is_mp4(file_name):
@@ -98,49 +96,6 @@ def gcs_get_object_details(bucket_name, gcs_file_path):
         return False
 
     
-
-'''
-def list_object_bucket(bucket_to_list, maxResults):
-    list_md5_hash_objects_bucket_repo = []
-    next_page_token = ''
-    flag = True
-    try:
-        while flag:
-            flag = False
-            service = build('storage', 'v1')
-            parameters ={    
-                'bucket' : bucket_to_list,
-                #'delimiter' : '',
-                #'endOffset' : '',        
-                'includeFoldersAsPrefixes' : False,
-                'includeTrailingDelimiter' : False,
-                #'matchGlob' : '',
-                'maxResults' : maxResults,
-                'pageToken' : next_page_token,
-                #'prefix' : '',
-                'projection' : 'full',
-                'softDeleted' : False,
-                #'startOffset' : '',
-                #'userProject' : '',
-                'versions' : False
-            }
-            response = service.objects().list(**parameters)
-            response = response.execute()
-
-            for object in response['items']:
-                list_md5_hash_objects_bucket_repo.append(object['md5Hash'])
-
-            if response.get('nextPageToken'):
-                flag = True
-                next_page_token = response.get('nextPageToken')
-
-        print(list_md5_hash_objects_bucket_repo)
-        return list_md5_hash_objects_bucket_repo
-    
-    except Exception as e:
-        print('EXECUTE ERROR OBTAIN OBJECTS LIST', e)
-'''
-
 def compare_object(md5h_hash_file_in, details_object_in):
     try:
         if details_object_in :
@@ -185,7 +140,7 @@ def request_http(filename, path_destination):
     if post_response.status_code != 200:
         error = f'ERROR_HTTP_REQUEST:: code: {post_response.status_code}, reaseon: {post_response.reason}, headers:{str(post_response.headers)}'
         print(error)
-        raise error
+        #raise error
     #return post_response.json()
 
 

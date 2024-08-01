@@ -1,0 +1,6 @@
+*.pyc
+venv/*
+credentials.json
+request.json
+variables.sh
+__pycache__
